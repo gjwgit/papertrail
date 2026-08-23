@@ -777,6 +777,59 @@ class _AddEditReceiptScreenState extends State<AddEditReceiptScreen>
     );
   }
 
+  /// The title field, with its autocomplete over titles already used.
+
+  Widget _titleField() {
+    return RawAutocomplete<String>(
+      textEditingController: _titleController,
+      focusNode: _titleFocus,
+      optionsBuilder: (value) {
+        final query = value.text.trim().toLowerCase();
+        if (query.isEmpty) return _knownTitles;
+        return _knownTitles.where((t) => t.toLowerCase().contains(query));
+      },
+      fieldViewBuilder: (context, controller, focusNode, onSubmit) {
+        return TextFormField(
+          controller: controller,
+          focusNode: focusNode,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(
+            labelText: 'Title *',
+            hintText: 'e.g. Coffee machine',
+            border: OutlineInputBorder(),
+            suffixIcon: Icon(Icons.arrow_drop_down),
+          ),
+          validator: (v) =>
+              (v == null || v.trim().isEmpty) ? 'Enter a title' : null,
+        );
+      },
+      optionsViewBuilder: (context, onSelected, options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 240, maxWidth: 400),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: options.length,
+                itemBuilder: (context, i) {
+                  final option = options.elementAt(i);
+                  return ListTile(
+                    dense: true,
+                    title: Text(option),
+                    onTap: () => onSelected(option),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildForm(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -803,60 +856,54 @@ class _AddEditReceiptScreenState extends State<AddEditReceiptScreen>
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  RawAutocomplete<String>(
-                    textEditingController: _titleController,
-                    focusNode: _titleFocus,
-                    optionsBuilder: (value) {
-                      final query = value.text.trim().toLowerCase();
-                      if (query.isEmpty) return _knownTitles;
-                      return _knownTitles.where(
-                        (t) => t.toLowerCase().contains(query),
-                      );
-                    },
-                    fieldViewBuilder:
-                        (context, controller, focusNode, onSubmit) {
-                          return TextFormField(
-                            controller: controller,
-                            focusNode: focusNode,
-                            textCapitalization: TextCapitalization.sentences,
-                            decoration: const InputDecoration(
-                              labelText: 'Title *',
-                              hintText: 'e.g. Coffee machine',
-                              border: OutlineInputBorder(),
-                              suffixIcon: Icon(Icons.arrow_drop_down),
-                            ),
-                            validator: (v) => (v == null || v.trim().isEmpty)
-                                ? 'Enter a title'
-                                : null,
-                          );
-                        },
-                    optionsViewBuilder: (context, onSelected, options) {
-                      return Align(
-                        alignment: Alignment.topLeft,
-                        child: Material(
-                          elevation: 4,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              maxHeight: 240,
-                              maxWidth: 400,
-                            ),
-                            child: ListView.builder(
-                              padding: EdgeInsets.zero,
-                              shrinkWrap: true,
-                              itemCount: options.length,
-                              itemBuilder: (context, i) {
-                                final option = options.elementAt(i);
-                                return ListTile(
-                                  dense: true,
-                                  title: Text(option),
-                                  onTap: () => onSelected(option),
-                                );
-                              },
-                            ),
+                  // The attachment actions sit beside the title so
+                  // capturing the receipt is the first thing to hand rather
+                  // than something to scroll down for. The Attachment section
+                  // further down keeps the preview and Remove.
+                  Row(
+                    children: [
+                      Expanded(child: _titleField()),
+                      if (Platform.isAndroid || Platform.isIOS)
+                        MarkdownTooltip(
+                          message:
+                              '''
+
+**Take Photo**
+
+Photograph the receipt with the camera. An image over
+${maxAttachmentBytes ~/ (1024 * 1024)} MB is compressed automatically.
+
+''',
+                          child: IconButton(
+                            icon: const Icon(Icons.camera_alt_outlined),
+                            onPressed: _compressing ? null : _captureAttachment,
                           ),
                         ),
-                      );
-                    },
+                      MarkdownTooltip(
+                        message: _effectiveAttachmentExt == null
+                            ? '''
+
+**Add File**
+
+Attach a photo or PDF of the receipt. An image over
+${maxAttachmentBytes ~/ (1024 * 1024)} MB is compressed automatically; a PDF
+must already be that size or smaller.
+
+'''
+                            : '''
+
+**Replace File**
+
+Choose a different photo or PDF for this receipt. The one attached now is
+replaced when you save.
+
+''',
+                        child: IconButton(
+                          icon: const Icon(Icons.attach_file),
+                          onPressed: _compressing ? null : _pickAttachment,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -1016,11 +1063,7 @@ class _AddEditReceiptScreenState extends State<AddEditReceiptScreen>
                   _AttachmentSection(
                     extension: _effectiveAttachmentExt,
                     pickedPath: _pickedPath,
-                    onPick: _pickAttachment,
                     onClear: _clearAttachment,
-                    onCamera: (Platform.isAndroid || Platform.isIOS)
-                        ? _captureAttachment
-                        : null,
                     isCompressing: _compressing,
                   ),
                   const SizedBox(height: 24),
@@ -1182,19 +1225,13 @@ class _AttachmentSection extends StatelessWidget {
   const _AttachmentSection({
     required this.extension,
     required this.pickedPath,
-    required this.onPick,
     required this.onClear,
-    this.onCamera,
     this.isCompressing = false,
   });
 
   final String? extension;
   final String? pickedPath;
-  final VoidCallback onPick;
   final VoidCallback onClear;
-
-  /// Non-null only on Android / iOS — shows a "Take photo" button.
-  final VoidCallback? onCamera;
   final bool isCompressing;
 
   @override
@@ -1263,29 +1300,17 @@ class _AttachmentSection extends StatelessWidget {
         const SizedBox(height: 12),
         preview,
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            if (onCamera != null)
-              OutlinedButton.icon(
-                onPressed: isCompressing ? null : onCamera,
-                icon: const Icon(Icons.camera_alt_outlined),
-                label: const Text('Take photo'),
-              ),
-            OutlinedButton.icon(
-              onPressed: isCompressing ? null : onPick,
-              icon: const Icon(Icons.attach_file),
-              label: Text(hasAttachment ? 'Replace file' : 'Add file'),
+        // Take photo and Add file live beside the Title at the top of the
+        // form; only Remove belongs with the preview.
+        if (hasAttachment && !isCompressing)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: onClear,
+              icon: const Icon(Icons.delete_outline),
+              label: const Text('Remove'),
             ),
-            if (hasAttachment && !isCompressing)
-              TextButton.icon(
-                onPressed: onClear,
-                icon: const Icon(Icons.delete_outline),
-                label: const Text('Remove'),
-              ),
-          ],
-        ),
+          ),
       ],
     );
   }
