@@ -37,6 +37,7 @@ Vidanage](https://anushkavidanage.github.io/).
 
 ## 1.1
 
++ Compact the ANALYTICS summary cards on wide screens [1.1.17 20260813 gjw]
 + Move TAKE PHOTO and ADD FILE up beside the title [1.1.16 20260813 gjw]
 + Copy and download a receipt's attachment [1.1.15 20260813 gjw]
 + Restore receipt attachments from a backup [1.1.14 20260809 gjw]

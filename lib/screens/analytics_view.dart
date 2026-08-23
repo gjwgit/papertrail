@@ -198,38 +198,59 @@ class _SummaryRow extends StatelessWidget {
         : receipts.map((r) => r.amount).reduce(max);
     final currency = _dominantCurrency(receipts);
 
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 2.2,
-      children: [
-        _StatCard(
-          icon: Icons.account_balance_wallet_outlined,
-          label: 'Total Spent',
-          value: formatMoney(total, currency),
-        ),
-        _StatCard(
-          icon: Icons.receipt_long_outlined,
-          label: 'Receipts',
-          value: '$count',
-        ),
-        _StatCard(
-          icon: Icons.bar_chart_outlined,
-          label: 'Avg per Receipt',
-          value: formatMoney(avg, currency),
-        ),
-        _StatCard(
-          icon: Icons.arrow_upward_outlined,
-          label: 'Largest Purchase',
-          value: formatMoney(largest, currency),
-        ),
-      ],
+    final cards = [
+      _StatCard(
+        icon: Icons.account_balance_wallet_outlined,
+        label: 'Total Spent',
+        value: formatMoney(total, currency),
+      ),
+      _StatCard(
+        icon: Icons.receipt_long_outlined,
+        label: 'Receipts',
+        value: '$count',
+      ),
+      _StatCard(
+        icon: Icons.bar_chart_outlined,
+        label: 'Avg per Receipt',
+        value: formatMoney(avg, currency),
+      ),
+      _StatCard(
+        icon: Icons.arrow_upward_outlined,
+        label: 'Largest Purchase',
+        value: formatMoney(largest, currency),
+      ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // All four fit on one line once there is room for them; below that
+        // they fall back to two by two.
+        final columns = constraints.maxWidth >= 560 ? 4 : 2;
+        return GridView(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          // mainAxisExtent fixes the card height in pixels. childAspectRatio
+          // would derive it from the width instead, which is what made these
+          // grow tall and empty as the window widened.
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            // Scaled with the text, so a large system font size grows the
+            // card rather than overflowing it.
+            mainAxisExtent: MediaQuery.textScalerOf(
+              context,
+            ).scale(_statCardHeight),
+          ),
+          children: cards,
+        );
+      },
     );
   }
 }
+
+/// Height of a summary card: enough for the label and the value, and no more.
+const double _statCardHeight = 62;
 
 class _StatCard extends StatelessWidget {
   const _StatCard({
@@ -248,11 +269,13 @@ class _StatCard extends StatelessWidget {
     return Card(
       color: cs.surfaceContainerHighest,
       elevation: 0,
+      // The Card's own margin would eat into the grid spacing twice over.
+      margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Row(
               children: [
