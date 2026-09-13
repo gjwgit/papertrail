@@ -304,19 +304,21 @@ class _AddEditReceiptScreenState extends State<AddEditReceiptScreen>
   // -------------------------------------------------------------------------
 
   Future<void> _pickAttachment() async {
-    final result = await FilePicker.pickFiles(
+    // pickFile is file_picker 12's single-file picker, returning the file
+    // itself rather than a result wrapper. 20260912 gjw
+
+    final file = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: attachmentExtensions,
-      withData: false,
     );
-    if (result == null || result.files.isEmpty) return;
-    final file = result.files.single;
+    if (file == null) return;
     if (file.path == null) {
       _showSnack('Could not read the selected file on this platform.');
       return;
     }
-    // file_picker reports 0 on platforms where it cannot stat the file.
-    final size = file.size > 0 ? file.size : File(file.path!).lengthSync();
+    // length() returns the size the picker reported, falling back to
+    // reading the file on platforms where it cannot stat it.
+    final size = await file.length();
     final ext = (file.extension ?? '').toLowerCase();
 
     if (size > maxAttachmentBytes) {
@@ -460,18 +462,16 @@ class _AddEditReceiptScreenState extends State<AddEditReceiptScreen>
   }
 
   Future<void> _pickExtraFile(int index) async {
-    final result = await FilePicker.pickFiles(
+    final file = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: attachmentExtensions,
-      withData: false,
     );
-    if (result == null || result.files.isEmpty) return;
-    final file = result.files.single;
+    if (file == null) return;
     if (file.path == null) {
       _showSnack('Could not read the selected file on this platform.');
       return;
     }
-    final size = file.size > 0 ? file.size : File(file.path!).lengthSync();
+    final size = await file.length();
     final ext = (file.extension ?? '').toLowerCase();
 
     if (size > maxAttachmentBytes) {

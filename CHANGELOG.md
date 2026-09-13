@@ -37,6 +37,8 @@ Vidanage](https://anushkavidanage.github.io/).
 
 ## 1.1
 
++ Update to solidpod 1.0.22 and solidui 1.0.41 [1.1.19 20260914 gjw]
++ Remember the window size between sessions [1.1.18 20260913 gjw]
 + Compact the ANALYTICS summary cards on wide screens [1.1.17 20260813 gjw]
 + Move TAKE PHOTO and ADD FILE up beside the title [1.1.16 20260813 gjw]
 + Copy and download a receipt's attachment [1.1.15 20260813 gjw]

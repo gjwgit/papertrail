@@ -118,7 +118,7 @@ Future<String> exportReceiptsToCsv(List<Receipt> receipts) async {
 /// Builds the CSV for [receipts] and prompts the user for a save location via
 /// the system file chooser, mirroring the ZIP backup export.
 ///
-/// Returns the saved path, or null if the user cancelled the dialog.
+/// Returns the saved location, or null if the user cancelled the dialog.
 Future<String?> exportReceiptsToCsvFile(List<Receipt> receipts) async {
   final csv = _buildCsv(receipts);
   // UTF-8 BOM prefix so Excel on Windows recognises the encoding automatically.
@@ -130,19 +130,18 @@ Future<String?> exportReceiptsToCsvFile(List<Receipt> receipts) async {
       '${_pad(now.hour)}${_pad(now.minute)}';
   final filename = 'papertrail_$stamp.csv';
 
-  final savePath = await FilePicker.saveFile(
+  // From file_picker 12 the picker writes the bytes on every platform,
+  // desktop included, and reports the destination as a Uri — a content://
+  // one on Android, which has no file path to show. 20260912 gjw
+
+  final saved = await FilePicker.saveFile(
     dialogTitle: 'Export CSV',
     fileName: filename,
+    bytes: bytes,
+    mimeType: 'text/csv',
     type: FileType.custom,
     allowedExtensions: ['csv'],
-    bytes: bytes,
   );
-  if (savePath == null) return null; // User cancelled.
-
-  // On desktop, saveFile returns a path but does not write the bytes, so we
-  // write them ourselves. On mobile, the picker writes the bytes.
-  if (!Platform.isAndroid && !Platform.isIOS) {
-    await File(savePath).writeAsBytes(bytes);
-  }
-  return savePath;
+  if (saved == null) return null; // User cancelled.
+  return saved.isScheme('file') ? saved.toFilePath() : saved.toString();
 }

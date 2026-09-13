@@ -161,18 +161,25 @@ class _ReceiptDetailScreenState extends State<ReceiptDetailScreen> {
     setState(() => _busy = true);
     try {
       final bytes = await PodService.instance.readAttachmentBytes(receipt.id);
-      final savePath = await FilePicker.saveFile(
+
+      // From file_picker 12 the picker writes the bytes itself and reports
+      // the destination as a Uri — a content:// one on Android, which has
+      // no file path to show. 20260912 gjw
+
+      final saved = await FilePicker.saveFile(
         dialogTitle: 'Save attachment',
         fileName: attachmentFileName(
           receipt.title,
           receipt.attachmentExtension!,
         ),
+        bytes: bytes,
         type: FileType.custom,
         allowedExtensions: [receipt.attachmentExtension!],
       );
-      if (savePath == null) return; // Cancelled.
-      await File(savePath).writeAsBytes(bytes);
-      _showSnack('Saved to $savePath');
+      if (saved == null) return; // Cancelled.
+      _showSnack(
+        'Saved to ${saved.isScheme('file') ? saved.toFilePath() : saved}',
+      );
     } catch (e) {
       _showSnack('Could not save the attachment: $e');
     } finally {

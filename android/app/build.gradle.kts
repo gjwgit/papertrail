@@ -24,9 +24,15 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // appAuthRedirectScheme and oidcRedirectScheme are required by
+        // flutter_appauth and oidc_android (via solidpod, for Solid OIDC
+        // login): both contribute a redirect activity to the merged
+        // manifest and neither declares a default, so the merger fails
+        // without them. Schemes must be lower case.
         manifestPlaceholders.putAll(mapOf(
-        "appAuthRedirectScheme" to "com.example.papertrail"
-    )) 
+            "appAuthRedirectScheme" to "com.example.papertrail",
+            "oidcRedirectScheme" to "com.example.papertrail"
+        ))
     }
 
     buildTypes {
