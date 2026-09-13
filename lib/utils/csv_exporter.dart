@@ -130,9 +130,9 @@ Future<String?> exportReceiptsToCsvFile(List<Receipt> receipts) async {
       '${_pad(now.hour)}${_pad(now.minute)}';
   final filename = 'papertrail_$stamp.csv';
 
-  // From file_picker 12 the picker writes the bytes on every platform,
-  // desktop included, and reports the destination as a Uri — a content://
-  // one on Android, which has no file path to show. 20260912 gjw
+  // 20260912 gjw From file_picker 12 the picker writes the bytes on every
+  // platform, desktop included, and reports the destination as a Uri — a
+  // content:// one on Android, which has no file path to show.
 
   final saved = await FilePicker.saveFile(
     dialogTitle: 'Export CSV',

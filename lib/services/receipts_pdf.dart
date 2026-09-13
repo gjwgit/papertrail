@@ -181,9 +181,9 @@ Future<String?> saveReceiptsPdfAs(List<int> bytes, String defaultName) async {
       );
       return null;
     }
-    // From file_picker 12 the picker writes the bytes itself and reports
-    // the destination as a Uri — a content:// one on Android, which has no
-    // file path to show. 20260912 gjw
+    // 20260912 gjw From file_picker 12 the picker writes the bytes itself and
+    // reports the destination as a Uri — a content:// one on Android, which has
+    // no file path to show.
 
     final saved = await FilePicker.saveFile(
       dialogTitle: 'Save PDF',

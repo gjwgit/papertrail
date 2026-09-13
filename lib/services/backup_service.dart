@@ -140,9 +140,8 @@ class BackupService {
     onProgress?.call(0, 1, 'Choosing save location…');
     final zipBytes = Uint8List.fromList(ZipEncoder().encode(archive));
     final filename = 'papertrail_backup_${_ts(DateTime.now())}.zip';
-    // From file_picker 12 the picker writes the bytes on every platform,
-    // desktop included, so the write-it-ourselves branch is gone.
-    // 20260912 gjw
+    // 20260912 gjw From file_picker 12 the picker writes the bytes on every
+    // platform, desktop included, so the write-it-ourselves branch is gone.
 
     final saved = await FilePicker.saveFile(
       dialogTitle: 'Save Backup',
@@ -166,9 +165,9 @@ class BackupService {
 
     // ── 1. Pick the ZIP ───────────────────────────────────────────────
     onProgress?.call(0, 1, 'Choosing backup file…');
-    // pickFile is file_picker 12's single-file picker, returning the file
-    // itself rather than a result wrapper, and the bytes are read from it
-    // on demand rather than through withData. 20260912 gjw
+    // 20260912 gjw pickFile is file_picker 12's single-file picker, returning
+    // the file itself rather than a result wrapper, and the bytes are read from
+    // it on demand rather than through withData.
 
     final picked = await FilePicker.pickFile(
       dialogTitle: 'Select Backup',

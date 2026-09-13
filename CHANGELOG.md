@@ -37,6 +37,7 @@ Vidanage](https://anushkavidanage.github.io/).
 
 ## 1.1
 
++ Date-stamp comments at the start rather than the end [1.1.20 20260914 gjw]
 + Update to solidpod 1.0.22 and solidui 1.0.41 [1.1.19 20260914 gjw]
 + Remember the window size between sessions [1.1.18 20260913 gjw]
 + Compact the ANALYTICS summary cards on wide screens [1.1.17 20260813 gjw]

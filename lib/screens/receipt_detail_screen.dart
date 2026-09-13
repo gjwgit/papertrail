@@ -162,9 +162,9 @@ class _ReceiptDetailScreenState extends State<ReceiptDetailScreen> {
     try {
       final bytes = await PodService.instance.readAttachmentBytes(receipt.id);
 
-      // From file_picker 12 the picker writes the bytes itself and reports
-      // the destination as a Uri — a content:// one on Android, which has
-      // no file path to show. 20260912 gjw
+      // 20260912 gjw From file_picker 12 the picker writes the bytes itself and
+      // reports the destination as a Uri — a content:// one on Android, which
+      // has no file path to show.
 
       final saved = await FilePicker.saveFile(
         dialogTitle: 'Save attachment',
